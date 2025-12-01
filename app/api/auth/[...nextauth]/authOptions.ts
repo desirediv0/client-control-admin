@@ -2,6 +2,7 @@ import prisma from "@/db/db.config";
 import { CustomJWT, CustomSession } from "@/types/type";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -23,6 +24,12 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           throw new Error("No user found");
+        }
+
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+          throw new Error("Invalid password");
         }
 
         return {
