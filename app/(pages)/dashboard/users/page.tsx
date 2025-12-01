@@ -2,6 +2,8 @@ import React from "react";
 import UsersDashboard from "../_components/UsersDashboard";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Users Dashboard",
   description: "View and manage users",

@@ -10,7 +10,14 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(updates);
-  } catch (error) {
+  } catch (error: any) {
+    // Handle case where Update table doesn't exist in database
+    if (error?.code === "P2021" || error?.message?.includes("does not exist")) {
+      console.warn(
+        "Update table does not exist in database. Returning empty array."
+      );
+      return NextResponse.json([]);
+    }
     console.error("Error fetching updates:", error);
     return NextResponse.json(
       { error: "Failed to fetch updates" },

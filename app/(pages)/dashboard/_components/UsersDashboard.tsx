@@ -382,6 +382,7 @@ const UsersDashboard: React.FC = () => {
 
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorDisplay message={error.message} />;
+  if (!data?.getChildrenByParentId) return <LoadingSkeleton />;
 
   const {
     children: users,

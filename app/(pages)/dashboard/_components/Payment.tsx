@@ -36,6 +36,7 @@ export default function Payment() {
 
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorMessage message={error.message} />;
+  if (!data?.getChildrenByParentId) return <LoadingSkeleton />;
 
   const { children: users } = data.getChildrenByParentId;
 
