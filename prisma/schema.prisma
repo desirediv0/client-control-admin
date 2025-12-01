@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  children      Child[]
+  parentId      String?
+  parent        User?    @relation("UserChildren", fields: [parentId], references: [id])
+  childrenUsers User[]   @relation("UserChildren")
+
+  @@index([email])
+}
+
+model Child {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  phone       String
+  domain      String
+  password    String
+  totalAmt    Float
+  joinDate    String
+  databaseUrl String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  parentId    String
+  parent      User     @relation(fields: [parentId], references: [id])
+
+  @@index([email])
+  @@index([parentId])
+}
+
+model Update {
+  id        String   @id @default(uuid())
+  title     String
+  show      Boolean  @default(false)
+  link      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
