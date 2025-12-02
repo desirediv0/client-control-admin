@@ -2,7 +2,7 @@ import React from "react";
 import Payment from "../_components/Payment";
 import { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "user upcoming payment",
