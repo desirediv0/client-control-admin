@@ -31,40 +31,47 @@ export default function Component() {
 import { NextResponse } from "next/server";
 
 export async function middleware(req) {
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-middleware-cache", "no-cache");
+
   try {
-    let status;
     const cookies = req.cookies;
-    const statusCookie = cookies.get('site-status');
+    const statusCookie = cookies.get("x-site-status");
 
-    if (statusCookie) {
-      status = statusCookie.value === 'true';
-    } else {
-      const res = await fetch(
-        \`\${process.env.API_URL}/api/check-site-status?siteId=\${process.env.SITE_ID}\`
-      );
-      const data = await res.json();
-      status = data.status;
+    // Only TRUE cookie means site-down
+    const isSiteDownCookie = statusCookie?.value === "true";
 
-      const response = NextResponse.next();
-      response.cookies.set('site-status', status.toString(), {
-        maxAge: 60 * 60 * 24,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-      });
-
-      if (status === true) {
-        return NextResponse.redirect(new URL("/site-down", req.url));
-      }
-      return response;
+    if (isSiteDownCookie) {
+      return NextResponse.redirect(new URL("/site-down", req.url));
     }
 
+    // Always call API for fresh status
+    const apiUrl = \`\${process.env.NEXT_PUBLIC_API_URL}/user/active-status\`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    const status = data.data;
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+
+    // Reset cookie
+    response.cookies.set("x-site-status", status.toString(), {
+      maxAge: 60 * 60 * 24,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    // Site down? redirect
     if (status === true) {
       return NextResponse.redirect(new URL("/site-down", req.url));
     }
-    return NextResponse.next();
+
+    return response;
   } catch (error) {
-    console.error("Error in middleware:", error);
-    return NextResponse.next();
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 }
 
@@ -75,40 +82,47 @@ export const config = {
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(req: NextRequest): Promise<NextResponse> {
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-middleware-cache", "no-cache");
+
   try {
-    let status: boolean;
     const cookies = req.cookies;
-    const statusCookie = cookies.get('site-status');
+    const statusCookie = cookies.get("x-site-status");
 
-    if (statusCookie) {
-      status = statusCookie === 'true';
-    } else {
-      const res = await fetch(
-        \`\${process.env.API_URL}/api/check-site-status?siteId=\${process.env.SITE_ID}\`
-      );
-      const data: { status: boolean } = await res.json();
-      status = data.status;
+    // Only TRUE cookie means site-down
+    const isSiteDownCookie = statusCookie?.value === "true";
 
-      const response = NextResponse.next();
-      response.cookies.set('site-status', status.toString(), {
-        maxAge: 60 * 60 * 24,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-      });
-
-      if (status === true) {
-        return NextResponse.redirect(new URL("/site-down", req.url));
-      }
-      return response;
+    if (isSiteDownCookie) {
+      return NextResponse.redirect(new URL("/site-down", req.url));
     }
 
+    // Always call API for fresh status
+    const apiUrl = \`\${process.env.NEXT_PUBLIC_API_URL}/user/active-status\`;
+    const res = await fetch(apiUrl);
+    const data: { data: boolean } = await res.json();
+    const status = data.data;
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+
+    // Reset cookie
+    response.cookies.set("x-site-status", status.toString(), {
+      maxAge: 60 * 60 * 24,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    // Site down? redirect
     if (status === true) {
       return NextResponse.redirect(new URL("/site-down", req.url));
     }
-    return NextResponse.next();
+
+    return response;
   } catch (error) {
-    console.error("Error in middleware:", error);
-    return NextResponse.next();
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 }
 
